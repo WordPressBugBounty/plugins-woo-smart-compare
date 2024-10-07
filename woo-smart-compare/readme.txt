@@ -4,8 +4,8 @@ Donate link: https://wpclever.net
 Tags: woocommerce, wpc, compare, comparison
 Requires at least: 4.0
 Tested up to: 6.6
-Version: 6.2.9
-Stable tag: 6.2.9
+Version: 6.3.0
+Stable tag: 6.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,6 +85,10 @@ Example:
 `echo do_shortcode('[woosc id="99"]');`
 
 == Changelog ==
+
+= 6.3.0 =
+* Fixed: Show private products for logged-in users
+* Added: Filter hook 'woosc_product_visible'
 
 = 6.2.9 =
 * Updated: Optimized the code

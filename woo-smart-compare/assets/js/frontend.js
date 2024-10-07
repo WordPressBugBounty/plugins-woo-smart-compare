@@ -384,6 +384,7 @@
         ($(e.target).closest('.woosc-table').length === 0) &&
         ($(e.target).closest('.woosc-bar').length === 0) &&
         ($(e.target).closest('.woosc-menu-item a').length === 0) &&
+        ($(e.target).closest('.woosc-link a').length === 0) &&
         ($(e.target).closest('.woosc-menu a').length === 0) &&
         ($(e.target).closest('.woosc-sidebar-btn').length === 0) &&
         ((woosc_vars.open_button === '') ||
@@ -460,31 +461,33 @@
 
   // menu item
   $(document).
-      on('click touch', '.woosc-menu-item a, .woosc-menu a', function(e) {
-        if (woosc_vars.menu_action === 'open_popup') {
-          e.preventDefault();
+      on('click touch', '.woosc-menu-item a, .woosc-menu a, .woosc-link a',
+          function(e) {
+            if (woosc_vars.menu_action === 'open_popup') {
+              e.preventDefault();
 
-          // open compare popup
-          if (!$('.woosc-table-items').hasClass('woosc-table-items-loaded')) {
-            woosc_load_data('table');
-          }
+              // open compare popup
+              if (!$('.woosc-table-items').
+                  hasClass('woosc-table-items-loaded')) {
+                woosc_load_data('table');
+              }
 
-          woosc_open_bar();
-          woosc_open_table();
-        }
+              woosc_open_bar();
+              woosc_open_table();
+            }
 
-        if (woosc_vars.menu_action === 'open_sidebar') {
-          e.preventDefault();
+            if (woosc_vars.menu_action === 'open_sidebar') {
+              e.preventDefault();
 
-          // open sidebar
-          if (!$('.woosc-sidebar-items').
-              hasClass('woosc-sidebar-items-loaded')) {
-            woosc_load_data('sidebar');
-          }
+              // open sidebar
+              if (!$('.woosc-sidebar-items').
+                  hasClass('woosc-sidebar-items-loaded')) {
+                woosc_load_data('sidebar');
+              }
 
-          woosc_open_sidebar();
-        }
-      });
+              woosc_open_sidebar();
+            }
+          });
 
   function woosc_search() {
     $('.woosc-search-result').html('').addClass('woosc-loading');
@@ -987,6 +990,7 @@
     $('#woosc-area').attr('data-count', count);
     $('.woosc-bar').attr('data-count', count);
     $('.woosc-sidebar-count').html(' (' + count + ')');
+    $('.woosc-link .woosc-link-inner').attr('data-count', count);
 
     $('.woosc-bar-items').removeClass('woosc-bar-items-loaded');
     $('.woosc-sidebar-items').removeClass('woosc-sidebar-items-loaded');

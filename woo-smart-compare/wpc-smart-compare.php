@@ -3,7 +3,7 @@
 Plugin Name: WPC Smart Compare for WooCommerce
 Plugin URI: https://wpclever.net/
 Description: Smart products compare for WooCommerce.
-Version: 6.2.9
+Version: 6.3.0
 Author: WPClever
 Author URI: https://wpclever.net
 Text Domain: woo-smart-compare
@@ -17,7 +17,7 @@ WC tested up to: 9.3
 
 defined( 'ABSPATH' ) || exit;
 
-! defined( 'WOOSC_VERSION' ) && define( 'WOOSC_VERSION', '6.2.9' );
+! defined( 'WOOSC_VERSION' ) && define( 'WOOSC_VERSION', '6.3.0' );
 ! defined( 'WOOSC_LITE' ) && define( 'WOOSC_LITE', __FILE__ );
 ! defined( 'WOOSC_FILE' ) && define( 'WOOSC_FILE', __FILE__ );
 ! defined( 'WOOSC_URI' ) && define( 'WOOSC_URI', plugin_dir_url( __FILE__ ) );
@@ -185,6 +185,7 @@ if ( ! function_exists( 'woosc_init' ) ) {
 					// shortcode
 					add_shortcode( 'woosc', [ $this, 'shortcode_btn' ] );
 					add_shortcode( 'woosc_btn', [ $this, 'shortcode_btn' ] );
+					add_shortcode( 'woosc_link', [ $this, 'shortcode_link' ] );
 					add_shortcode( 'woosc_list', [ $this, 'shortcode_list' ] );
 					add_shortcode( 'woosc_quick_table', [ $this, 'shortcode_quick_table' ] );
 
@@ -1758,7 +1759,7 @@ if ( ! function_exists( 'woosc_init' ) ) {
 						foreach ( $products as $product_id ) {
 							$product_obj = wc_get_product( $product_id );
 
-							if ( ! $product_obj || $product_obj->get_status() !== 'publish' ) {
+							if ( ! $product_obj || ! apply_filters( 'woosc_product_visible', $product_obj->is_visible(), $product_obj, 'bar' ) ) {
 								continue;
 							}
 
@@ -1783,7 +1784,7 @@ if ( ! function_exists( 'woosc_init' ) ) {
 						foreach ( $products as $product_id ) {
 							$product_obj = wc_get_product( $product_id );
 
-							if ( ! $product_obj || $product_obj->get_status() !== 'publish' ) {
+							if ( ! $product_obj || ! apply_filters( 'woosc_product_visible', $product_obj->is_visible(), $product_obj, 'sidebar' ) ) {
 								continue;
 							}
 
@@ -1854,25 +1855,25 @@ if ( ! function_exists( 'woosc_init' ) ) {
 							$post = get_post( $product_id );
 							setup_postdata( $post );
 
-							$product        = wc_get_product( $product_id );
+							$product_obj    = wc_get_product( $product_id );
 							$parent_product = false;
 
-							if ( ! $product || $product->get_status() !== 'publish' ) {
+							if ( ! $product_obj || ! apply_filters( 'woosc_product_visible', $product_obj->is_visible(), $product_obj, 'table' ) ) {
 								continue;
 							}
 
-							if ( $product->is_type( 'variation' ) && ( $parent_product_id = $product->get_parent_id() ) ) {
+							if ( $product_obj->is_type( 'variation' ) && ( $parent_product_id = $product_obj->get_parent_id() ) ) {
 								$parent_product = wc_get_product( $parent_product_id );
 							}
 
 							$products_data[ $product_id ]['id'] = $product_id;
 
-							$product_name = apply_filters( 'woosc_product_name', $product->get_name() );
+							$product_name = apply_filters( 'woosc_product_name', $product_obj->get_name() );
 
 							if ( $link !== 'no' ) {
-								$products_data[ $product_id ]['name'] = apply_filters( 'woosc_product_name', '<a ' . ( $link === 'yes_popup' ? 'class="woosq-link" data-id="' . $product_id . '" data-context="woosc"' : '' ) . ' href="' . $product->get_permalink() . '" draggable="false" ' . ( $link === 'yes_blank' ? 'target="_blank"' : '' ) . '>' . wp_strip_all_tags( $product_name ) . '</a>', $product );
+								$products_data[ $product_id ]['name'] = apply_filters( 'woosc_product_name', '<a ' . ( $link === 'yes_popup' ? 'class="woosq-link" data-id="' . $product_id . '" data-context="woosc"' : '' ) . ' href="' . $product_obj->get_permalink() . '" draggable="false" ' . ( $link === 'yes_blank' ? 'target="_blank"' : '' ) . '>' . wp_strip_all_tags( $product_name ) . '</a>', $product_obj );
 							} else {
-								$products_data[ $product_id ]['name'] = apply_filters( 'woosc_product_name', wp_strip_all_tags( $product_name ), $product );
+								$products_data[ $product_id ]['name'] = apply_filters( 'woosc_product_name', wp_strip_all_tags( $product_name ), $product_obj );
 							}
 
 							if ( $remove && ! $is_share ) {
@@ -1892,79 +1893,79 @@ if ( ! function_exists( 'woosc_init' ) ) {
 									// default fields
 									switch ( $field_name ) {
 										case 'image':
-											$image = $product->get_image( self::get_setting( 'image_size', 'woosc-large' ), [
+											$image = $product_obj->get_image( self::get_setting( 'image_size', 'woosc-large' ), [
 												'draggable' => 'false',
 												'loading'   => self::get_setting( 'bar_print', 'yes' ) === 'yes' ? false : 'lazy'
 											] );
 
 											if ( $link !== 'no' ) {
-												$products_data[ $product_id ]['image'] = apply_filters( 'woosc_product_image', '<a ' . ( $link === 'yes_popup' ? 'class="woosq-link" data-id="' . $product_id . '" data-context="woosc"' : '' ) . ' href="' . $product->get_permalink() . '" draggable="false" ' . ( $link === 'yes_blank' ? 'target="_blank"' : '' ) . '>' . $image . '</a>', $product );
+												$products_data[ $product_id ]['image'] = apply_filters( 'woosc_product_image', '<a ' . ( $link === 'yes_popup' ? 'class="woosq-link" data-id="' . $product_id . '" data-context="woosc"' : '' ) . ' href="' . $product_obj->get_permalink() . '" draggable="false" ' . ( $link === 'yes_blank' ? 'target="_blank"' : '' ) . '>' . $image . '</a>', $product_obj );
 											} else {
-												$products_data[ $product_id ]['image'] = apply_filters( 'woosc_product_image', $image, $product );
+												$products_data[ $product_id ]['image'] = apply_filters( 'woosc_product_image', $image, $product_obj );
 											}
 
 											break;
 										case 'sku':
-											$products_data[ $product_id ]['sku'] = apply_filters( 'woosc_product_sku', $product->get_sku(), $product );
+											$products_data[ $product_id ]['sku'] = apply_filters( 'woosc_product_sku', $product_obj->get_sku(), $product_obj );
 											break;
 										case 'price':
-											$products_data[ $product_id ]['price'] = apply_filters( 'woosc_product_price', $product->get_price_html(), $product );
+											$products_data[ $product_id ]['price'] = apply_filters( 'woosc_product_price', $product_obj->get_price_html(), $product_obj );
 											break;
 										case 'stock':
-											$products_data[ $product_id ]['stock'] = apply_filters( 'woosc_product_stock', wc_get_stock_html( $product ), $product );
+											$products_data[ $product_id ]['stock'] = apply_filters( 'woosc_product_stock', wc_get_stock_html( $product_obj ), $product_obj );
 											break;
 										case 'add_to_cart':
-											$products_data[ $product_id ]['add_to_cart'] = apply_filters( 'woosc_product_add_to_cart', do_shortcode( '[add_to_cart style="" show_price="false" id="' . $product_id . '"]' ), $product );
+											$products_data[ $product_id ]['add_to_cart'] = apply_filters( 'woosc_product_add_to_cart', do_shortcode( '[add_to_cart style="" show_price="false" id="' . $product_id . '"]' ), $product_obj );
 											break;
 										case 'description':
-											$description = $product->get_short_description();
+											$description = $product_obj->get_short_description();
 
-											if ( $product->is_type( 'variation' ) ) {
-												$description = $product->get_description();
+											if ( $product_obj->is_type( 'variation' ) ) {
+												$description = $product_obj->get_description();
 
 												if ( empty( $description ) && $parent_product ) {
 													$description = $parent_product->get_short_description();
 												}
 											}
 
-											$products_data[ $product_id ]['description'] = apply_filters( 'woosc_product_description', $description, $product );
+											$products_data[ $product_id ]['description'] = apply_filters( 'woosc_product_description', $description, $product_obj );
 
 											break;
 										case 'content':
-											$content = $product->get_description();
+											$content = $product_obj->get_description();
 
 											if ( $parent_product ) {
 												$content = $parent_product->get_description();
 											}
 
-											$products_data[ $product_id ]['content'] = apply_filters( 'woosc_product_content', do_shortcode( $content ), $product );
+											$products_data[ $product_id ]['content'] = apply_filters( 'woosc_product_content', do_shortcode( $content ), $product_obj );
 
 											break;
 										case 'additional':
 											ob_start();
-											wc_display_product_attributes( $product );
+											wc_display_product_attributes( $product_obj );
 											$additional = ob_get_clean();
 
-											$products_data[ $product_id ]['additional'] = apply_filters( 'woosc_product_additional', $additional, $product );
+											$products_data[ $product_id ]['additional'] = apply_filters( 'woosc_product_additional', $additional, $product_obj );
 											break;
 										case 'weight':
-											$products_data[ $product_id ]['weight'] = apply_filters( 'woosc_product_weight', wc_format_weight( $product->get_weight() ), $product );
+											$products_data[ $product_id ]['weight'] = apply_filters( 'woosc_product_weight', wc_format_weight( $product_obj->get_weight() ), $product_obj );
 											break;
 										case 'dimensions':
-											$products_data[ $product_id ]['dimensions'] = apply_filters( 'woosc_product_dimensions', wc_format_dimensions( $product->get_dimensions( false ) ), $product );
+											$products_data[ $product_id ]['dimensions'] = apply_filters( 'woosc_product_dimensions', wc_format_dimensions( $product_obj->get_dimensions( false ) ), $product_obj );
 											break;
 										case 'rating':
-											$products_data[ $product_id ]['rating'] = apply_filters( 'woosc_product_rating', wc_get_rating_html( $product->get_average_rating() ), $product );
+											$products_data[ $product_id ]['rating'] = apply_filters( 'woosc_product_rating', wc_get_rating_html( $product_obj->get_average_rating() ), $product_obj );
 											break;
 										case 'availability':
-											$product_availability                         = $product->get_availability();
-											$products_data[ $product_id ]['availability'] = apply_filters( 'woosc_product_availability', $product_availability['availability'], $product );
+											$product_availability                         = $product_obj->get_availability();
+											$products_data[ $product_id ]['availability'] = apply_filters( 'woosc_product_availability', $product_availability['availability'], $product_obj );
 											break;
 									}
 								}
 
 								if ( $field_type === 'shortcode' ) {
-									$products_data[ $product_id ][ 'sc_' . $key ] = apply_filters( 'woosc_product_sc_' . $key, do_shortcode( str_replace( '{product_id}', $product_id, $field_name ) ), $product );
+									$products_data[ $product_id ][ 'sc_' . $key ] = apply_filters( 'woosc_product_sc_' . $key, do_shortcode( str_replace( '{product_id}', $product_id, $field_name ) ), $product_obj );
 								}
 							}
 						}
@@ -2355,6 +2356,12 @@ if ( ! function_exists( 'woosc_init' ) ) {
 					}
 
 					return apply_filters( 'woosc_button_html', $output, $attrs['id'] );
+				}
+
+				function shortcode_link() {
+					$output = '<span class="woosc-link"><a href="' . esc_url( self::get_url() ) . '"><span class="woosc-link-inner" data-count="' . esc_attr( self::get_count() ) . '">' . esc_html( self::localization( 'link_label', esc_html__( 'Compare', 'woo-smart-compare' ) ) ) . '</span></a></span>';
+
+					return apply_filters( 'woosc_link_html', $output );
 				}
 
 				function shortcode_list( $attrs ) {
