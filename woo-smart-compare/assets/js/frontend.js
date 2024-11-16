@@ -5,7 +5,7 @@
 
   // ready
   $(function() {
-    woosc_load_color();
+    woosc_color();
     woosc_change_count('first');
     woosc_check_buttons();
     woosc_hide_empty();
@@ -66,6 +66,11 @@
   $(document).on('click touch', '.woosc-bar-print', function(e) {
     e.preventDefault();
     $.print('#woosc-area');
+  });
+
+  $(document).on('change', '#woosc-filter', function(e) {
+    e.preventDefault();
+    woosc_filter();
   });
 
   $(document).on('keydown', function(e) {
@@ -761,7 +766,7 @@
     $.post(woosc_vars.wc_ajax_url.toString().
         replace('%%endpoint%%', 'woosc_load'), data, function(response) {
       if (get_data === 'bar' || get_data === 'table') {
-        // load bar
+        // load bar items
         $('.woosc-bar-items').
             html(response.bar).
             addClass('woosc-bar-items-loaded');
@@ -820,6 +825,15 @@
         $(document.body).trigger('woosc_sidebar_loaded');
       }
 
+      if (get_data === 'bar' || get_data === 'table' || get_data ===
+          'sidebar') {
+        // load bar filter
+        $('.woosc-bar-filter').html(response.filter);
+        woosc_filter();
+
+        $(document.body).trigger('woosc_filter_loaded');
+      }
+
       if (get_data === 'count') {
         // load count
         if (response.count != null) {
@@ -834,20 +848,21 @@
 
   function woosc_quick_table() {
     let ww = $(window).width();
+    let fixed = JSON.parse(woosc_vars.quick_table_fixed);
 
     if (ww >= 1024) {
       $('.woosc-quick-table .woosc_table').
-          tableHeadFixer({'head': false, left: 2});
+          tableHeadFixer({'head': false, left: fixed.pc});
     }
 
     if (ww >= 768 && ww < 1024) {
       $('.woosc-quick-table .woosc_table').
-          tableHeadFixer({'head': false, left: 1});
+          tableHeadFixer({'head': false, left: fixed.ta});
     }
 
     if (ww < 768) {
       $('.woosc-quick-table .woosc_table').
-          tableHeadFixer({'head': false, left: 0});
+          tableHeadFixer({'head': false, left: fixed.mo});
     }
   }
 
@@ -951,7 +966,7 @@
     $(document.body).trigger('woosc_toggle');
   }
 
-  function woosc_load_color() {
+  function woosc_color() {
     var bg_color = $('#woosc-area').attr('data-bg-color');
     var btn_color = $('#woosc-area').attr('data-btn-color');
 
@@ -959,6 +974,23 @@
     $('.woosc-bar').css('background-color', bg_color);
     $('.woosc-bar-btn').css('background-color', btn_color);
     $('.woosc-sidebar-btn').css('background-color', btn_color);
+  }
+
+  function woosc_filter() {
+    if (woosc_vars.bar_filter !== 'no' && $('#woosc-filter').length) {
+      var filter = $('#woosc-filter').val().toLowerCase();
+
+      if (filter !== '_all_') {
+        $('.woosc_table .col').hide();
+        $('.woosc_table .col-' + filter).show();
+
+        $('.woosc-bar-item').addClass('woosc-bar-item-hidden');
+        $('.woosc-bar-item-' + filter).removeClass('woosc-bar-item-hidden');
+      } else {
+        $('.woosc_table .col').show();
+        $('.woosc-bar-item').removeClass('woosc-bar-item-hidden');
+      }
+    }
   }
 
   function woosc_change_count(count) {
