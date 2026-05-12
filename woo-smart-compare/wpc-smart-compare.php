@@ -3,7 +3,7 @@
 Plugin Name: WPC Smart Compare for WooCommerce
 Plugin URI: https://wpclever.net/
 Description: Smart products compare for WooCommerce.
-Version: 6.5.6
+Version: 6.5.7
 Author: WPClever
 Author URI: https://wpclever.net
 Text Domain: woo-smart-compare
@@ -12,14 +12,14 @@ Requires Plugins: woocommerce
 Requires at least: 4.0
 Tested up to: 6.9
 WC requires at least: 3.0
-WC tested up to: 10.6
+WC tested up to: 10.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 */
 
 defined( 'ABSPATH' ) || exit;
 
-! defined( 'WOOSC_VERSION' ) && define( 'WOOSC_VERSION', '6.5.6' );
+! defined( 'WOOSC_VERSION' ) && define( 'WOOSC_VERSION', '6.5.7' );
 ! defined( 'WOOSC_LITE' ) && define( 'WOOSC_LITE', __FILE__ );
 ! defined( 'WOOSC_FILE' ) && define( 'WOOSC_FILE', __FILE__ );
 ! defined( 'WOOSC_URI' ) && define( 'WOOSC_URI', plugin_dir_url( __FILE__ ) );
@@ -28,11 +28,14 @@ defined( 'ABSPATH' ) || exit;
 ! defined( 'WOOSC_REVIEWS' ) && define( 'WOOSC_REVIEWS', 'https://wordpress.org/support/plugin/woo-smart-compare/reviews/' );
 ! defined( 'WOOSC_CHANGELOG' ) && define( 'WOOSC_CHANGELOG', 'https://wordpress.org/plugins/woo-smart-compare/#developers' );
 ! defined( 'WOOSC_DISCUSSION' ) && define( 'WOOSC_DISCUSSION', 'https://wordpress.org/support/plugin/woo-smart-compare' );
-! defined( 'WPC_URI' ) && define( 'WPC_URI', WOOSC_URI );
 
-include 'includes/dashboard/wpc-dashboard.php';
-include 'includes/kit/wpc-kit.php';
-include 'includes/hpos.php';
+// WPC Core
+require_once __DIR__ . '/includes/wpc-core/wpc-core.php';
+wpc_core_register( [
+        'file'    => __FILE__,
+        'version' => WOOSC_VERSION,
+        'prefix'  => 'woosc',
+] );
 
 if ( ! function_exists( 'woosc_init' ) ) {
     add_action( 'plugins_loaded', 'woosc_init', 11 );
@@ -1062,7 +1065,7 @@ if ( ! function_exists( 'woosc_init' ) ) {
                                                 <label> <select name="woosc_settings[bar_filter]">
                                                         <option value="no" <?php selected( $bar_filter, 'no' ); ?>><?php esc_html_e( 'None (disable)', 'woo-smart-compare' ); ?></option>
                                                         <?php
-                                                        $taxonomies = get_object_taxonomies( 'product', 'objects' ); //$taxonomies = get_taxonomies( [ 'object_type' => [ 'product' ] ], 'objects' );
+                                                        $taxonomies = get_object_taxonomies( 'product', 'objects' );
 
                                                         foreach ( $taxonomies as $taxonomy ) {
                                                             echo '<option value="' . esc_attr( $taxonomy->name ) . '" ' . selected( $bar_filter, $taxonomy->name, false ) . '>' . esc_html( $taxonomy->label ) . '</option>';
